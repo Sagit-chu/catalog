@@ -7,13 +7,13 @@ on:
     branches:
       - 'staging'
   workflow_dispatch:
-  
+
 jobs:
   test-and-sync:
     name: Test and Sync SCALE Catalog
     runs-on: ubuntu-latest
     container:
-      image: ghcr.io/truecharts/devcontainer:v2.6.0@sha256:cefec796e714cd07bae25ef48670999819ceefa0cbb5ff8b9738fabc916ceea7
+      image: ghcr.io/truecharts/devcontainer:v3.1.0@sha256:941edfc4e58f549e66e1d8b6f87d664d815efd6a2f21fd144883f0d1534dece6
     steps:
       - uses: actions/checkout@2541b1294d2704b0964813337f33b291d3f8596b # tag=v3
         name: Checkout
@@ -22,9 +22,16 @@ jobs:
         run: |
           echo "Starting Catalog Validation"
           /usr/local/bin/catalog_validate validate --path "${PWD}"
-            
+
+      - name: catalog json generation
+        run: |
+          echo "Starting Catalog json Generation"
+          /usr/local/bin/catalog_update update --path "${PWD}"
+
       - name: Merge staging into main
         run: |
           git config user.name "TrueCharts-Bot"
           git config user.email "bot@truecharts.org"
+          git add catalog.json
+          git commit -m "Commit catalog.json"
           git push -f origin staging:main
